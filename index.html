@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>تحويل رابط Google Drive إلى رابط مباشر + توليد QR</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- 
+    Developed by:
+    خالد الايداء (Email: kalenezi1@tvtc.gov.sa)
+  -->
+
+  <!-- Simple styling -->
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      direction: rtl;  /* Right-to-left for Arabic */
+      background: #fdfdfd;
+      color: #333;
+    }
+    header, footer {
+      background: #0085A1;
+      color: #fff;
+      text-align: center;
+      padding: 1rem;
+    }
+    main {
+      max-width: 600px;
+      margin: 1rem auto;
+      padding: 1rem;
+      background: #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    h1, h2, h3 {
+      margin-top: 0;
+    }
+    label {
+      display: block;
+      margin: 1rem 0 0.5rem;
+      font-weight: bold;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+      direction: ltr; /* So links are left-to-right */
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      color: #fff;
+      background: #0085A1;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #00728A;
+    }
+    .output-section {
+      margin-top: 1.5rem;
+      border-top: 1px solid #eee;
+      padding-top: 1rem;
+    }
+    .qr-container {
+      margin-top: 1rem;
+      text-align: center;
+    }
+    .footer-credit {
+      font-size: 0.875rem;
+      margin: 0.5rem 0;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>تحويل رابط Google Drive إلى رابط مباشر + توليد QR</h1>
+</header>
+
+<main>
+  <!-- Instructions in Arabic -->
+  <p>
+    أدخل رابط المشاركة (Share Link) الخاص بملف <strong>.seb</strong> من Google Drive أدناه، 
+    ثم اضغط على <em>توليد الرابط المباشر</em> للحصول على رابط التنزيل المباشر، 
+    وبعدها يمكنك إنشاء رمز الاستجابة السريعة (QR) الذي يمكن مسحه ضوئيًا في 
+    <strong>Safe Exam Browser</strong>.
+  </p>
+
+  <!-- Input for Google Drive share link -->
+  <label for="gdriveLink">رابط جوجل درايف:</label>
+  <input type="text" id="gdriveLink" placeholder="مثال: https://drive.google.com/file/d/....../view?usp=sharing">
+
+  <!-- Generate Direct Link button -->
+  <button onclick="generateDirectLink()">توليد الرابط المباشر</button>
+
+  <!-- Results area -->
+  <div class="output-section" id="results" style="display: none;">
+    <h2>الرابط المباشر:</h2>
+    <p id="directLink"></p>
+
+    <!-- Button to generate QR code from direct link -->
+    <button onclick="generateQR()">توليد رمز QR</button>
+
+    <!-- QR code result -->
+    <div class="qr-container" id="qrContainer" style="display: none;">
+      <h3>رمز الاستجابة السريعة (QR):</h3>
+      <div id="qrCodeImage"></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-credit">
+    تم التطوير بواسطة: خالد الايداء (kalenezi1@tvtc.gov.sa)
+  </div>
+</footer>
+
+<script>
+// 1) Parse Google Drive Share Link -> Extract File ID -> Build direct download link
+function generateDirectLink() {
+  const shareLink = document.getElementById("gdriveLink").value.trim();
+  const results = document.getElementById("results");
+  const directLinkElem = document.getElementById("directLink");
+  const qrContainer = document.getElementById("qrContainer");
+
+  // Reset QR container
+  qrContainer.style.display = "none";
+  document.getElementById("qrCodeImage").innerHTML = "";
+
+  // Simple regex to extract /d/<FILE_ID> from share link
+  const match = shareLink.match(/\/d\/([^/]+)/);
+  if (!match) {
+    directLinkElem.innerHTML = "<span style='color:red;'>خطأ: الرابط المدخل غير صحيح.</span>";
+    results.style.display = "block";
+    return;
+  }
+  
+  const fileId = match[1];
+  // Build direct download URL
+  const directURL = "https://drive.google.com/uc?export=download&id=" + fileId;
+
+  directLinkElem.innerHTML = `
+    <a href="${directURL}" target="_blank">${directURL}</a>
+    <br>
+    <small>تأكد أن الملف مشارك بوضع "Anyone with the link can View"</small>
+  `;
+  results.style.display = "block";
+}
+
+// 2) Generate a QR code from the direct download link
+function generateQR() {
+  const directLinkElem = document.getElementById("directLink");
+  const qrCodeImage = document.getElementById("qrCodeImage");
+  const qrContainer = document.getElementById("qrContainer");
+
+  // Extract actual direct link from the anchor tag in "directLinkElem"
+  const linkAnchor = directLinkElem.querySelector("a");
+  if (!linkAnchor) {
+    alert("لا يوجد رابط مباشر متوفر.");
+    return;
+  }
+  const directURL = linkAnchor.href;
+
+  // Use a free QR code API:
+  // e.g. https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=...
+  const qrApi = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" 
+              + encodeURIComponent(directURL);
+
+  // Display the QR code as an <img>
+  const imgHtml = `<img src="${qrApi}" alt="QR Code" style="max-width: 250px;">`;
+
+  qrCodeImage.innerHTML = imgHtml;
+  qrContainer.style.display = "block";
+}
+</script>
+
+</body>
+</html>
