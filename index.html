@@ -1,279 +1,149 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>تحويل رابط Google Drive إلى رابط مباشر + توليد QR</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- 
-    Developed by: خالد الايداء (kalenezi1@tvtc.gov.sa)
-  -->
-  <style>
-    /* Basic reset and RTL for Arabic */
-    * {
-      box-sizing: border-box;
-    }
-    body {
-      margin: 0;
-      font-family: "Segoe UI", Tahoma, sans-serif;
-      direction: rtl; /* Right-to-left for Arabic */
-      background: #f0f0f0;
-      color: #333;
-    }
-
-    /* Header & Footer */
-    header, footer {
-      background: #2c3e50; 
-      color: #ecf0f1;
-      text-align: center;
-      padding: 1rem;
-    }
-
-    main {
-      max-width: 600px;
-      margin: 1rem auto 2rem;
-      padding: 1rem;
-      background: #fff;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-
-    h1, h2, h3 {
-      margin-top: 0;
-    }
-
-    label {
-      display: block;
-      margin: 1rem 0 0.5rem;
-      font-weight: bold;
-    }
-
-    input[type="text"] {
-      width: 100%;
-      padding: 0.5rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 1rem;
-      direction: ltr; /* So the link is LTR */
-    }
-
-    .button-group {
-      text-align: center;
-      margin-top: 1rem;
-    }
-
-    button {
-      padding: 0.75rem 1.25rem;
-      font-size: 1rem;
-      color: #fff;
-      background: #2980b9; /* accent color */
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      margin: 0.5rem;
-    }
-    button:hover {
-      background: #1e70a0;
-    }
-
-    .output-section {
-      margin-top: 1.5rem;
-      border-top: 1px solid #eee;
-      padding-top: 1rem;
-    }
-    .qr-container {
-      margin-top: 1rem;
-      text-align: center;
-    }
-    .footer-credit {
-      font-size: 0.875rem;
-      margin: 0.5rem 0;
-    }
-
-    /* Poster Section (hidden by default) */
-    #posterSection {
-      display: none; /* Shown after user clicks "إنشاء ملصق A4" */
-      background: #fff;
-      padding: 1rem;
-      margin: 1rem auto;
-      max-width: 1000px; /* just for on-screen display */
-      text-align: center;
-    }
-    #posterTitle {
-      font-size: 1.5rem;
-      margin-bottom: 1rem;
-    }
-    #posterInstructions {
-      line-height: 1.7;
-      margin-bottom: 2rem;
-    }
-    /* We will rely on the browser print settings to force A4 landscape. 
-       But let's add a print-specific rule: */
-    @media print {
-      @page {
-        size: A4 landscape;
-        margin: 20mm;
-      }
-      body {
-        background: #fff;
-      }
-      header, main, footer {
-        display: none; /* Hide normal interface */
-      }
-      #posterSection {
-        display: block !important; /* Only show the poster when printing */
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مولد بطاقة هدايا</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+        }
+        h1 {
+            margin-bottom: 20px;
+            font-size: 32px;
+            color: #333;
+        }
+        #giftCardForm {
+            display: flex;
+            flex-direction: column;
+            width: 300px;
+            margin-bottom: 20px;
+        }
+        input, button {
+            margin-bottom: 10px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #cardContainer {
+            position: relative;
+            width: 1240px; /* A4 landscape width in pixels (at 96 DPI) */
+            height: 874px; /* A4 landscape height in pixels (at 96 DPI) */
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        #textDisplay {
+            font-size: 40px;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        #qrCode {
+            position: absolute;
+            bottom: 50px;
+            width: 150px;
+            height: 150px;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
+    <h1>مولد بطاقة هدايا</h1>
+    <form id="giftCardForm">
+        <input type="text" id="text" placeholder="أدخل النص الخاص بك" required>
+        <input type="url" id="url" placeholder="أدخل رابط URL (اختياري)">
+        <button type="button" onclick="generateCard()">إنشاء بطاقة هدايا</button>
+        <button type="button" onclick="sendToDiscord()">إرسال إلى Discord</button>
+    </form>
 
-<header>
-  <h1>تحويل رابط Google Drive إلى رابط مباشر + توليد QR</h1>
-</header>
-
-<main>
-  <p>
-    أدخل رابط المشاركة (Share Link) الخاص بملف <strong>.seb</strong> من Google Drive أدناه، 
-    ثم اضغط على <em>توليد الرابط المباشر</em> للحصول على رابط التنزيل المباشر، 
-    وبعد ذلك يمكنك توليد رمز الاستجابة السريعة (QR) لمسحه ضوئيًا عبر 
-    <strong>Safe Exam Browser</strong>.
-  </p>
-
-  <!-- Input for Google Drive share link -->
-  <label for="gdriveLink">رابط جوجل درايف:</label>
-  <input type="text" id="gdriveLink" placeholder="مثال: https://drive.google.com/file/d/....../view?usp=sharing">
-
-  <!-- Buttons for direct link + QR generation -->
-  <div class="button-group">
-    <button onclick="generateDirectLink()">توليد الرابط المباشر</button>
-  </div>
-
-  <!-- Results area -->
-  <div class="output-section" id="results" style="display: none;">
-    <h2>الرابط المباشر:</h2>
-    <p id="directLink"></p>
-
-    <div class="button-group">
-      <button onclick="generateQR()">توليد رمز QR</button>
+    <div id="cardContainer">
+        <div id="textDisplay"></div>
+        <div id="qrCode"></div>
     </div>
 
-    <!-- QR code result -->
-    <div class="qr-container" id="qrContainer" style="display: none;">
-      <h3>رمز الاستجابة السريعة (QR):</h3>
-      <div id="qrCodeImage"></div>
+    <script>
+        let generatedCardImage = null;
 
-      <!-- Button to create an A4 poster -->
-      <div class="button-group">
-        <button onclick="createPoster()">إنشاء ملصق A4</button>
-      </div>
-    </div>
-  </div>
-</main>
+        function generateCard() {
+            const text = document.getElementById('text').value;
+            const url = document.getElementById('url').value;
 
-<!-- Poster section (hidden initially, revealed via JS) -->
-<div id="posterSection">
-  <div id="posterTitle">تعليمات الدخول إلى الاختبار عبر متصفح Safe Exam Browser</div>
-  <div id="posterInstructions">
-    1. افتح تطبيق Safe Exam Browser على جهازك.<br>
-    2. اضغط على "Scan QR Code".<br>
-    3. وجّه الكاميرا نحو هذا الملصق لمسح رمز الاستجابة السريعة.<br>
-    4. سيتم تنزيل ملف الإعدادات والانتقال إلى بوابة الاختبار تلقائياً.<br>
-  </div>
-  <div id="posterQR"></div>
-  <!-- You can add a logo or footer text here if you want -->
-  <p style="margin-top:2rem;font-size:0.9rem;">تم التطوير بواسطة: خالد الايداء (kalenezi1@tvtc.gov.sa)</p>
-</div>
+            // Display the text
+            const textDisplay = document.getElementById('textDisplay');
+            textDisplay.textContent = text;
 
-<footer>
-  <div class="footer-credit">
-    تم التطوير بواسطة: خالد الايداء (<a href="mailto:kalenezi1@tvtc.gov.sa" style="color:#ecf0f1;">kalenezi1@tvtc.gov.sa</a>)
-  </div>
-</footer>
+            // Generate QR code
+            const qrCodeDiv = document.getElementById('qrCode');
+            qrCodeDiv.innerHTML = ''; // Clear previous QR code
+            if (url) {
+                new QRCode(qrCodeDiv, {
+                    text: url,
+                    width: 150,
+                    height: 150
+                });
+            }
 
-<script>
-// 1) Parse Google Drive Share Link -> Extract File ID -> Build direct download link
-function generateDirectLink() {
-  const shareLink = document.getElementById("gdriveLink").value.trim();
-  const results = document.getElementById("results");
-  const directLinkElem = document.getElementById("directLink");
-  const qrContainer = document.getElementById("qrContainer");
-  const qrCodeImage = document.getElementById("qrCodeImage");
+            // Convert the card to an image
+            const cardContainer = document.getElementById('cardContainer');
+            html2canvas(cardContainer).then(canvas => {
+                generatedCardImage = canvas.toDataURL('image/png');
+            });
+        }
 
-  // Reset
-  directLinkElem.innerHTML = "";
-  results.style.display = "none";
-  qrContainer.style.display = "none";
-  qrCodeImage.innerHTML = "";
+        async function sendToDiscord() {
+            if (!generatedCardImage) {
+                alert('الرجاء إنشاء البطاقة أولاً.');
+                return;
+            }
 
-  // Regex to extract /d/<FILE_ID> from share link
-  const match = shareLink.match(/\/d\/([^/]+)/);
-  if (!match) {
-    directLinkElem.innerHTML = "<span style='color:red;'>خطأ: الرابط المدخل غير صحيح.</span>";
-    results.style.display = "block";
-    return;
-  }
+            const webhookURL = 'https://discord.com/api/webhooks/1147683551236587550/Me9GrRXPY1aMRch5if7KHEymy36qm28XDl_YlDEX-pkVqbasrlXlJppcbaAVbRNqSePU'; // Replace with your Discord webhook URL
 
-  const fileId = match[1];
-  // Build direct download URL
-  const directURL = "https://drive.google.com/uc?export=download&id=" + fileId;
+            // Convert base64 image to a Blob
+            const base64Data = generatedCardImage.split(',')[1];
+            const blob = await fetch(`data:image/png;base64,${base64Data}`).then(res => res.blob());
 
-  directLinkElem.innerHTML = `
-    <a href="${directURL}" target="_blank">${directURL}</a>
-    <br>
-    <small>تأكد أن الملف مشارك بوضع "Anyone with the link can View"</small>
-  `;
-  results.style.display = "block";
-}
+            // Create FormData and append the file
+            const formData = new FormData();
+            formData.append('file', blob, 'gift-card.png');
 
-// 2) Generate a QR code from the direct download link
-function generateQR() {
-  const directLinkElem = document.getElementById("directLink");
-  const qrContainer = document.getElementById("qrContainer");
-  const qrCodeImage = document.getElementById("qrCodeImage");
-
-  // Extract actual direct link from the anchor tag in "directLinkElem"
-  const linkAnchor = directLinkElem.querySelector("a");
-  if (!linkAnchor) {
-    alert("لا يوجد رابط مباشر متوفر.");
-    return;
-  }
-  const directURL = linkAnchor.href;
-
-  // Use a free QR code API:
-  // e.g. https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=...
-  const qrApi = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data="
-              + encodeURIComponent(directURL);
-
-  // Display the QR code as an <img>
-  const imgHtml = `<img src="${qrApi}" alt="QR Code" style="max-width: 250px;">`;
-
-  qrCodeImage.innerHTML = imgHtml;
-  qrContainer.style.display = "block";
-}
-
-// 3) Create an A4 poster with instructions and the same QR code at the bottom
-function createPoster() {
-  // Show the posterSection, copy the QR code, then open print dialog
-  const posterSection = document.getElementById("posterSection");
-  const qrCodeImage = document.getElementById("qrCodeImage").innerHTML;
-  const posterQR = document.getElementById("posterQR");
-  
-  if (!qrCodeImage || qrCodeImage.trim() === "") {
-    alert("أولاً، قم بتوليد رمز QR قبل إنشاء الملصق.");
-    return;
-  }
-
-  // Put the same QR code inside the poster
-  posterQR.innerHTML = qrCodeImage;
-
-  // Show the poster section (for an on-screen preview)
-  posterSection.style.display = "block";
-
-  // Immediately trigger print (which will show only #posterSection in print mode)
-  window.print();
-
-  // If you want to hide it again after printing, you can uncomment:
-  // posterSection.style.display = "none";
-}
-</script>
+            // Send the file to Discord
+            fetch(webhookURL, {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('تم إرسال البطاقة إلى Discord بنجاح!');
+                } else {
+                    alert('فشل إرسال البطاقة إلى Discord.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('حدث خطأ أثناء إرسال البطاقة.');
+            });
+        }
+    </script>
 </body>
 </html>
